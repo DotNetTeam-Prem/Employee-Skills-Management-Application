@@ -1,0 +1,48 @@
+﻿@page "/employees/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+
+<h3>Edit Employee</h3>
+
+@if(model == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EmployeeForm
+        Model="model"
+        Skills="skills"
+        ButtonText="Update"
+        OnValidSubmit="Update"
+        OnCancel="Cancel" />
+}
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private EmployeeViewModel? model;
+
+    private List<Skill> skills = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        skills = await EmployeeService.GetSkillsAsync();
+        model = await EmployeeService.GetEmployeeForEditAsync(Id);
+    }
+
+    private async Task Update()
+    {
+        await EmployeeService.UpdateAsync(Id, model!);
+        Navigation.NavigateTo("/employees");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/employees");
+    }
+}

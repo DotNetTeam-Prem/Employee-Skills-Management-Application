@@ -1,0 +1,32 @@
+﻿@using System.Linq.Expressions
+@using EmployeeSkills.Web.Helpers
+<div class="mb-3">
+
+    <label class="form-label">@Label</label>
+
+    <input class="form-control"
+           value="@Value"
+           @oninput="OnInputChanged" />
+
+    <ValidationMessage For="@For" />
+
+</div>
+
+@code {
+
+    [Parameter] public string Label { get; set; } = "";
+
+    [Parameter] public string Value { get; set; } = "";
+
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter] public Expression<Func<string>> For { get; set; } = default!;
+
+    async Task OnInputChanged(ChangeEventArgs e)
+    {
+        var value = TextHelper.Capitalize(e.Value?.ToString() ?? "");
+
+        await ValueChanged.InvokeAsync(value);
+    }
+
+}

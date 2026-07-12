@@ -1,0 +1,43 @@
+﻿<div class="mb-3">
+
+    <label>Skills</label>
+
+    @foreach(var skill in Skills)
+    {
+        <div>
+
+            <input type="checkbox"
+                   checked="@SelectedSkills.Contains(skill.Id)"
+                   @onchange="(e)=>Changed(skill.Id,e)" />
+
+            @skill.Name
+
+        </div>
+    }
+
+</div>
+
+@code{
+
+    [Parameter]
+    public List<Skill> Skills {get;set;}=new();
+
+    [Parameter]
+    public List<int> SelectedSkills {get;set;}=new();
+
+    [Parameter]
+    public EventCallback<List<int>> SelectedSkillsChanged {get;set;}
+
+    async Task Changed(int id,ChangeEventArgs e)
+    {
+        bool selected = e.Value as bool? ?? false;
+
+        if(selected)
+            SelectedSkills.Add(id);
+        else
+            SelectedSkills.Remove(id);
+
+        await SelectedSkillsChanged.InvokeAsync(SelectedSkills);
+    }
+
+}

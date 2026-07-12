@@ -1,0 +1,229 @@
+﻿@page "/employees"
+@rendermode InteractiveServer
+
+@using EmployeeSkills.Web.IServices
+@using EmployeeSkills.Web.Models
+
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Employees</PageTitle>
+
+<h3 class="mb-3">Employee List</h3>
+
+<div class="d-flex align-items-center gap-3 mb-3">
+
+    <div class="input-group flex-grow-1">
+
+        <InputText class="form-control"
+                   placeholder="Search employee by Name, Phone Number and Skills"
+                   @bind-Value="SearchText" />
+
+        @if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    @onclick="ClearSearch">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        }
+
+    </div>
+
+    <button class="btn btn-primary d-flex align-items-center gap-2"
+            @onclick="AddEmployee">
+        <i class="bi bi-plus-circle"></i>
+        <span>Add</span>
+    </button>
+
+</div>
+
+@if (employees == null)
+{
+    <p>Loading...</p>
+}
+else if (!FilteredEmployees.Any())
+{
+    <div class="alert alert-info">
+        No employees found.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+
+        <thead>
+
+            <tr>
+
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>DOB</th>
+                <th>Phone</th>
+                <th>Skills</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+        <tbody>
+
+            @foreach (var employee in PagedEmployees)
+            {
+                <tr>
+
+                    <td>@employee.FirstName</td>
+
+                    <td>@employee.LastName</td>
+
+                    <td>@employee.DateOfBirth.ToShortDateString()</td>
+
+                    <td>@employee.Phone</td>
+
+                    <td>
+
+                        @string.Join(", ", employee.Skills.Select(x => x.Name))
+
+                    </td>
+
+                    <td>
+
+                        <button class="btn btn-warning btn-sm"
+                                title="Edit"
+                                @onclick="() => EditEmployee(employee.Id)">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <button class="btn btn-danger btn-sm ms-2"
+                                title="Delete"
+                                @onclick="() => DeleteEmployee(employee.Id)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+
+        <button class="btn btn-secondary"
+                @onclick="PreviousPage"
+                disabled="@(currentPage == 1)">
+            Previous
+        </button>
+
+        <span>
+            Page @currentPage of @TotalPages
+        </span>
+
+        <button class="btn btn-secondary"
+                @onclick="NextPage"
+                disabled="@(currentPage == TotalPages)">
+            Next
+        </button>
+
+    </div>
+}
+
+@code {
+    private string _searchText = "";
+    private List<Employee>? employees;
+    int currentPage = 1;
+    int pageSize = 7;
+    private string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (_searchText != value)
+            {
+                _searchText = value;
+                currentPage = 1;
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await EmployeeService.GetAllAsync();
+    }
+
+    void AddEmployee()
+    {
+        Console.WriteLine("Add button clicked");
+        Navigation.NavigateTo("/employees/add");
+    }
+
+    void EditEmployee(int id)
+    {
+        Navigation.NavigateTo($"/employees/edit/{id}");
+    }
+
+    async Task DeleteEmployee(int id)
+    {
+        bool confirm = await JS.InvokeAsync<bool>(
+            "confirm",
+            "Are you sure you want to delete this employee?");
+
+        if (!confirm)
+            return;
+
+        await EmployeeService.DeleteAsync(id);
+
+        employees = await EmployeeService.GetAllAsync();
+    }
+    private IEnumerable<Employee> FilteredEmployees =>
+        employees?
+            .Where(e =>
+                string.IsNullOrWhiteSpace(SearchText) ||
+
+                (e.FirstName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (e.LastName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (e.Phone?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                e.Skills.Any(s =>
+                    s.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
+            ?? Enumerable.Empty<Employee>();
+
+    private IEnumerable<Employee> PagedEmployees
+    {
+        get
+        {
+            if (currentPage > TotalPages)
+                currentPage = TotalPages;
+
+            return FilteredEmployees
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize);
+        }
+    }
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling((double)FilteredEmployees.Count() / pageSize));
+
+    void NextPage()
+    {
+        if (currentPage < TotalPages)
+            currentPage++;
+    }
+
+    void PreviousPage()
+    {
+        if (currentPage > 1)
+            currentPage--;
+    }
+    void ResetPage(ChangeEventArgs e)
+    {
+        currentPage = 1;
+    }
+    void ClearSearch()
+    {
+        SearchText = string.Empty;
+    }   
+}

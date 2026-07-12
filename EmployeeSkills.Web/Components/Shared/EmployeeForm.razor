@@ -1,0 +1,49 @@
+﻿
+<EditForm Model="Model"
+          OnValidSubmit="OnValidSubmit">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <TextInput Label="First Name"
+               @bind-Value="Model.FirstName"
+               For="@(() => Model.FirstName)" />
+
+    <TextInput Label="Last Name"
+               @bind-Value="Model.LastName"
+               For="@(() => Model.LastName)" />
+
+    <DatePicker Label="Date Of Birth"
+                @bind-Value="Model.DateOfBirth"
+                For="@(() => Model.DateOfBirth)" />
+
+    <TextInput Label="Phone"
+               @bind-Value="Model.Phone"
+               For="@(() => Model.Phone)" />
+
+    <SkillSelector Skills="Skills"
+                   SelectedSkills="Model.SelectedSkills" />
+
+    <FormButtons SaveText="@ButtonText"
+                 OnCancel="OnCancel" />
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public EmployeeViewModel Model { get; set; } = new();
+
+    [Parameter]
+    public List<Skill> Skills { get; set; } = new();
+
+    [Parameter]
+    public string ButtonText { get; set; } = "Save";
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+}

@@ -1,0 +1,37 @@
+﻿@page "/employees/add"
+@rendermode InteractiveServer
+
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+
+<h3>Add Employee</h3>
+
+<EmployeeForm
+    Model="model"
+    Skills="skills"
+    ButtonText="Save"
+    OnValidSubmit="Save"
+    OnCancel="Cancel" />
+
+@code{
+
+    private EmployeeViewModel model = new();
+
+    private List<Skill> skills = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        skills = await EmployeeService.GetSkillsAsync();
+    }
+
+    private async Task Save()
+    {
+        await EmployeeService.AddAsync(model);
+        Navigation.NavigateTo("/employees");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/employees");
+    }
+}

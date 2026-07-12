@@ -1,0 +1,28 @@
+﻿<div class="mt-3">
+
+    <button type="submit"
+            class="btn btn-success">
+
+        @SaveText
+
+    </button>
+
+    <button class="btn btn-secondary ms-2"
+            type="button"
+            @onclick="OnCancel">
+
+        Cancel
+
+    </button>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public string SaveText { get; set; } = "Save";
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+}

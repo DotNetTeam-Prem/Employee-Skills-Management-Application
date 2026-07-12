@@ -1,0 +1,42 @@
+﻿@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="mb-3">
+
+    <label class="form-label">@Label</label>
+
+    <InputDate TValue="DateTime?"
+               class="form-control"
+               Value="Value"
+               ValueChanged="OnValueChanged"
+               ValueExpression="ValueExpression" />
+
+    <ValidationMessage For="@For" />
+
+</div>
+
+@code {
+
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public DateTime? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime?> ValueChanged { get; set; }
+
+    // Required for @bind-Value
+    [Parameter]
+    public Expression<Func<DateTime?>>? ValueExpression { get; set; }
+
+    // Used by ValidationMessage
+    [Parameter]
+    public Expression<Func<DateTime?>> For { get; set; } = default!;
+
+    private async Task OnValueChanged(DateTime? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+}
